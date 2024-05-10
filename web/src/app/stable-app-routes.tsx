@@ -53,56 +53,35 @@ function Terminal() {
 
   const processCommand = async (command: string) => {
     const commandOutput = `$ ${command}`;
-    setOutput((prev) => [...prev, commandOutput]);
-
-    const [cmd, ...args] = command.split(' ');
-
+    setOutput([...output, commandOutput]);
+  
+    const [cmd, amountStr, recipient] = command.split(' ');
+  
     switch (cmd) {
       case 'pay':
-        if (publicKey && signTransaction && args.length === 2) {
+        if (publicKey && signTransaction && amountStr && recipient) {
           try {
-            const amount = parseFloat(args[0]);
-            const recipient = args[1];
+            const amount = parseFloat(amountStr);
             const txid = await createPaymentTx(amount, recipient, publicKey, signTransaction, connection);
-            setOutput((prev) => [...prev, `Transaction submitted: ${txid}`]);
+            setOutput([...output, `Transaction submitted: ${txid}`]);
           } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            setOutput((prev) => [...prev, `Error: ${errorMessage}`]);
+            if (error instanceof Error) {
+              setOutput([...output, `Error: ${error.message}`]);
+            } else {
+              setOutput([...output, 'Unknown error occurred']);
+            }
           }
         } else {
-          setOutput((prev) => [...prev, 'Invalid parameters. Usage: pay <amount> <recipient>']);
+          setOutput([...output, 'Invalid parameters. Usage: pay <amount> <recipient>']);
         }
         break;
-      case 'balance':
-        if (publicKey) {
-          try {
-            const balance = await getWalletBalance(connection, publicKey);
-            setOutput((prev) => [...prev, `Wallet balance: ${balance} SOL`]);
-          } catch (error) {
-            setOutput((prev) => [...prev, 'Error fetching balance']);
-          }
-        } else {
-          setOutput((prev) => [...prev, 'Wallet not connected']);
-        }
-        break;
-      case 'disconnect':
-        setOutput((prev) => [...prev, 'Wallet disconnected.']);
-        break;
-      case 'help':
-        setOutput((prev) => [...prev, ...getHelpMessage()]);
+      case '9':
+        setOutput([...output, 'Wallet disconnected.']);
         break;
       default:
-        setOutput((prev) => [...prev, 'Invalid command. Type "help" for a list of commands.']);
+        setOutput([...output, 'Invalid command.']);
     }
   };
-
-  const getHelpMessage = () => [
-    'Available Commands:',
-    '1. pay <amount> <recipient> - Send a specified amount of SOL to a recipient',
-    '2. balance - Check the current wallet balance',
-    '3. disconnect - Disconnect the wallet',
-    '4. help - Show this help message',
-  ];
 
   const renderPrompt = () => {
     if (publicKey) {
@@ -121,9 +100,7 @@ function Terminal() {
             <p>Connected Wallet: {publicKey.toBase58()}</p>
             <p>Balance: {balance} SOL</p>
             <p>Options:</p>
-            {getHelpMessage().map((line, index) => (
-              <p key={index}>{line}</p>
-            ))}
+            <p>9. Exit</p>
           </>
         )}
         {output.map((line, index) => (

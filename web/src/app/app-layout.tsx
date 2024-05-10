@@ -16,7 +16,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       >
         <div>
           <Link to="/">
-            <img src="/assets/solana-logo.png" height={24} alt="Solana Logo" />
+            <img src="/assets/unruggable.png" height={60} />
           </Link>
         </div>
         <div>
